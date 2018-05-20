@@ -128,8 +128,8 @@ def manual_encoding(df):
     
     # encoding dependent variable of Lending Club dataset    
     if "loan_status" in df.columns:
-        stat_used = ["Current", "Fully Paid", "Default", "Charged Off", "In Grace Period"]
-        default = [0, 0, 1, 1, 0]
+        stat_used = ["Current", "Fully Paid", "Default", "Charged Off", "Late (31-120)", "Late (16-30)", "In Grace Period"]
+        default = [0, 0, 1, 1, 1, 0, 0]
         stat_notused = []
         nans = []
 
@@ -148,10 +148,9 @@ def manual_encoding(df):
         df["term"] = df["term"].replace([" 36 months", " 60 months"], [36, 60])
     return df
 
-def remove_cat(df, cat):
-    for feature in cat:
-        if feature in df.columns:
-            df = df.drop(feature, 1)
+def remove_feature(df, feature_remove):
+    if feature_remove in df.columns:
+        df = df.drop(feature_remove, 1)
     return df
 
 # get lists of categorical and numerical features
@@ -165,13 +164,28 @@ def get_features(df):
         if (type(df[feature][0]) == type("string") and feature != "loan_status" and feature != "SeriousDlqin2yrs"):
             categorical.append(feature)
             categorical_idx.append(df.columns.get_loc(feature))
-            #print (feat, nans_fa[feat])
+#            print ("categorical", feature, df.columns.get_loc(feature))
         elif (type(df[feature][0]) != type("string") and feature != "loan_status" and feature != "SeriousDlqin2yrs"):
             numerical.append(feature)
             numerical_idx.append(df.columns.get_loc(feature))
-            #print (feat, nans_fa[feat])
+#            print ("numerical", feature, df.columns.get_loc(feature))
     return categorical, numerical, categorical_idx, numerical_idx
-    
+
+
+def get_features_idx(df, cat, num):
+    categorical_idx = list()
+    numerical_idx = list()
+
+    for feature in cat:
+        if (feature != "loan_status" and feature != "SeriousDlqin2yrs"):
+            categorical_idx.append(df.columns.get_loc(feature))
+            #print (feat, nans_fa[feat])
+    for feature in num:
+        if (feature in num and feature != "loan_status" and feature != "SeriousDlqin2yrs"):
+            numerical_idx.append(df.columns.get_loc(feature))
+            #print (feat, nans_fa[feat])
+    return categorical_idx, numerical_idx
+
 
 # proces the empl_title (LC dataset) in order to reduce dimension
 def feature_handling(df):
@@ -179,31 +193,32 @@ def feature_handling(df):
     emp = list()
     if "emp_title" in df.columns:
         for i in df.index:
-            df.set_value(i, "emp_title", df["emp_title"][i].lower())
-            if df["emp_title"][i] == "rn":
-                df.set_value(i, "emp_title", "registered nurse")
-            elif "assistant" in df["emp_title"][i]:
-                df.set_value(i, "emp_title", "assistant")
-            elif "manager" in df["emp_title"][i]:
-                df.set_value(i, "emp_title", "manager")
-            elif "analyst" in df["emp_title"][i]:
-                df.set_value(i, "emp_title", "analyst")
-            elif "director" in df["emp_title"][i]:
-                df.set_value(i, "emp_title", "director")
-            elif "engineer" in df["emp_title"][i]:
-                df.set_value(i, "emp_title", "engineer")
-            elif "owner" in df["emp_title"][i]:
-                df.set_value(i, "emp_title", "owner")
-            elif "president" in df["emp_title"][i]:
-                df.set_value(i, "emp_title", "president")
-            elif "supervisor" in df["emp_title"][i]:
-                df.set_value(i, "emp_title", "supervisor")
-            elif "technician" in df["emp_title"][i]:
-                df.set_value(i, "emp_title", "technician")
-            elif "consultant" in df["emp_title"][i]:
-                df.set_value(i, "emp_title", "consultant")
-            elif "mechanic" in df["emp_title"][i]:
-                df.set_value(i, "emp_title", "mechanic")
+            if type(df["emp_title"][i]) == type("string"):
+                df.set_value(i, "emp_title", df["emp_title"][i].lower())
+                if df["emp_title"][i] == "rn":
+                    df.set_value(i, "emp_title", "registered nurse")
+                elif "assistant" in df["emp_title"][i]:
+                    df.set_value(i, "emp_title", "assistant")
+                elif "manager" in df["emp_title"][i]:
+                    df.set_value(i, "emp_title", "manager")
+                elif "analyst" in df["emp_title"][i]:
+                    df.set_value(i, "emp_title", "analyst")
+                elif "director" in df["emp_title"][i]:
+                    df.set_value(i, "emp_title", "director")
+                elif "engineer" in df["emp_title"][i]:
+                    df.set_value(i, "emp_title", "engineer")
+                elif "owner" in df["emp_title"][i]:
+                    df.set_value(i, "emp_title", "owner")
+                elif "president" in df["emp_title"][i]:
+                    df.set_value(i, "emp_title", "president")
+                elif "supervisor" in df["emp_title"][i]:
+                    df.set_value(i, "emp_title", "supervisor")
+                elif "technician" in df["emp_title"][i]:
+                    df.set_value(i, "emp_title", "technician")
+                elif "consultant" in df["emp_title"][i]:
+                    df.set_value(i, "emp_title", "consultant")
+                elif "mechanic" in df["emp_title"][i]:
+                    df.set_value(i, "emp_title", "mechanic")
         
         tmp = df["emp_title"].value_counts()        
         for i in tmp.index:
@@ -219,12 +234,13 @@ def feature_handling(df):
     emp = list()
     if "title" in df.columns:
         for i in df.index:
-            df.set_value(i, "title", df["title"][i].lower())
-            if "consolidate" in df["emp_title"][i]:
-                df.set_value(i, "title", "debt consolidation")
-            elif "consolidation" in df["emp_title"][i]:
-                df.set_value(i, "title", "debt consolidation")
-        
+             if type(df["title"][i]) == type("string"):
+                df.set_value(i, "title", df["title"][i].lower())
+                if "consolidate" in df["emp_title"][i]:
+                    df.set_value(i, "title", "debt consolidation")
+                elif "consolidation" in df["emp_title"][i]:
+                    df.set_value(i, "title", "debt consolidation")
+            
         tmp = df["title"].value_counts()        
         for i in tmp.index:
             if tmp[i] > 100:

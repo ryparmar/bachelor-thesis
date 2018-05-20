@@ -14,6 +14,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Merge, Reshape, Dropout
 from keras.layers.normalization import BatchNormalization
 from keras.layers.embeddings import Embedding
+from keras import optimizers
 
 # testing the embedding
 #def NN_embed(X_train, num_idx):
@@ -118,11 +119,12 @@ from keras.layers.embeddings import Embedding
 
 def NN_512(X_train):
     model = Sequential()
-#    model.add(Dense(X_train.shape[0], input_dim=X_train.shape[1], activation="relu"))
-    model.add(Dense(512, input_dim=X_train.shape[1], activation="relu", kernel_initializer='random_uniform')) #, kernel_initializer='random_uniform')
-    model.add(Dropout(0.3))
-    model.add(Dense(15, activation="relu", kernel_initializer='random_uniform'))
+    model.add(Dense(512, input_dim=X_train.shape[1], activation="relu", kernel_initializer='random_normal')) #, kernel_initializer='random_uniform')
+    model.add(Dropout(0.5))
+    model.add(Dense(512, activation="relu", kernel_initializer='random_normal'))
     model.add(Dense(1, activation="sigmoid"))
+    
+#    sgd = optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
     
     model.compile(loss='binary_crossentropy', optimizer="rmsprop", metrics=["accuracy"])
     return model
@@ -130,12 +132,15 @@ def NN_512(X_train):
 def NN_15(X_train):
     model = Sequential()
 #    model.add(Dense(X_train.shape[0], input_dim=X_train.shape[1], activation="relu"))
-    model.add(Dense(512, input_dim=X_train.shape[1], activation="relu", kernel_initializer='random_uniform'))
-    model.add(Dropout(0.3))
-    model.add(Dense(15, activation="relu", kernel_initializer='random_uniform'))
+    model.add(Dense(512, input_dim=X_train.shape[1], activation="relu", kernel_initializer='random_normal'))
+    model.add(Dropout(0.5))
+    model.add(Dense(10, activation="relu", kernel_initializer='random_normal'))
+    model.add(Dropout(0.5))
     model.add(Dense(1, activation="sigmoid"))
     
-    model.compile(loss='binary_crossentropy', optimizer="rmsprop", metrics=["accuracy"])
+#    sgd = optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    rmsprop = optimizers.RMSprop(lr=0.001, rho=0.9, epsilon=None, decay=0.0)
+    model.compile(loss='binary_crossentropy', optimizer=rmsprop, metrics=["accuracy"])
     return model
 
 
@@ -146,15 +151,15 @@ def RF():
 
 def LR():
     from sklearn.linear_model import LogisticRegression
-    return LogisticRegression(class_weight="balanced")
+    return LogisticRegression()
 
 
 def SVM():
     from sklearn import svm
-    return svm.SVC(class_weight="balanced", cache_size=6000)
+    return svm.SVC(cache_size=6000)
 
 def linSVM():
     from sklearn import svm
-    return svm.LinearSVC(class_weight="balanced")
+    return svm.LinearSVC()
 
     

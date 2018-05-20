@@ -65,16 +65,16 @@ def choose_best(scores1, scores2, features, k=10):
     return best
 
 
-
+#from sklearn.metrics import f1_score
 def find_hyperparams(classifier, parameters, X, y, search_method, n_iter=1, refit=True, cv=10):
     from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
     
     if search_method == "gridsearch":
-        clf = GridSearchCV(classifier, parameters, refit=refit, cv=cv) #, scoring="f1"
+        clf = GridSearchCV(classifier, parameters, refit=refit, cv=cv, scoring="f1")
         clf.fit(X, y)
         return clf, clf.best_params_
     else:
-        clf = RandomizedSearchCV(classifier, parameters, n_iter=n_iter, refit=refit, cv=cv) #, scoring="f1"
+        clf = RandomizedSearchCV(classifier, parameters, n_iter=n_iter, refit=refit, cv=cv)
         clf.fit(X, y)
         return clf, clf.best_params_
     
